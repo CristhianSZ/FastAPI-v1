@@ -1,11 +1,38 @@
 from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from typing import Optional
+
 
 app = FastAPI(
     title='Aprendiendo FastApi',
     description='Una api en los primeros pasos',
     version='0.0.1'
 )
+
+class Movie(BaseModel):
+    id : Optional[int] = None
+    title : str
+    overview : str
+    year : int
+    rating : float
+    category : str
+
+
+
+movies = [
+    {
+        'id' : 1,
+        'title' : 'El Padrino',
+        'overview' : "El Padrino es una película de 1972 dirigida por Francis For Coppola ...",
+        'year' : '1972',
+        'rating' : 9.2,
+        'category' : 'Crimen'
+    }
+]
+
+
+
 """Documentacion automatica: al agregar dontro de la instancia atributos, como title, description y version se puede modificar la documentacion
 para acceder a la documentacion se ingresar en la  url/docs
 en los verbos HTTP se pueden agregar las etiquetas para personalizar la documentacion con tags 
@@ -24,16 +51,6 @@ METODO GET
 
  """
 
-movies = [
-    {
-        'id' : 1,
-        'title' : 'El Padrino',
-        'overview' : "El Padrino es una película de 1972 dirigida por Francis For Coppola ...",
-        'year' : '1972',
-        'rating' : 9.2,
-        'category' : 'Crimen'
-    }
-]
 @app.get("/", tags=['inicio'])
 def read_root():
     """ No solo se puede responder con un objeto, tambien se pueden responder con etiquetas HTML """
@@ -66,43 +83,22 @@ def get_movies_by_category(category: str):
 """ Metodo POST """
 
 @app.post('/movies', tags=['Movies'])
-def create_movies(
-    id : int = Body(),
-    title : str = Body(),
-    overview : str = Body(),
-    year : int = Body(),
-    rating : float = Body(),
-    category : str = Body()
-):
-    movies.append({
-  "id": id,
-  "title": title,
-  "overview": overview,
-  "year": year,
-  "rating": rating,
-  "category": category
-})
-    return title
+def create_movies(movie: Movie):
+    movies.append(movie)
+    print(movies)
+    return movies
 
 """ Metodo PUT y DELETE """
 
 @app.put('/movies/{id}', tags=['Movies'])
-def update_movie(
-    id : int,
-    title : str = Body(),
-    overview : str = Body(),
-    year : int = Body(),
-    rating : float = Body(),
-    category : str = Body()
-
- ):
+def update_movie(id : int , movie: Movie ):
     for item in movies:
         if item["id"] == id:
-            item['title'] = title
-            item['overview'] = overview
-            item['year'] = year
-            item['rating'] = rating
-            item['category'] = category
+            item['title'] = movie.title
+            item['overview'] = movie.overview
+            item['year'] = movie.year
+            item['rating'] = movie.rating
+            item['category'] = movie.category
             return movies
     return []
     
