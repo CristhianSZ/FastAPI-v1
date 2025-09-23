@@ -2,13 +2,19 @@ from fastapi import FastAPI, Body, Path, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional
-
+from jwt import createToken
 
 app = FastAPI(
     title='Aprendiendo FastApi',
     description='Una api en los primeros pasos',
     version='0.0.1'
 )
+class User(BaseModel):
+    email: str
+    password: str
+
+
+
 
 class Movie(BaseModel):
     id : Optional[int] = None
@@ -18,15 +24,6 @@ class Movie(BaseModel):
     rating : float = Field(ge=1, le=10)
     category : str = Field(min_length=3, max_length=15)
     
-"""     def to_dict(self):
-        return{
-            'id': self.id,
-            'title': self.title,
-            'overview': self.overview,
-            'year': self.year,
-            'rating': self.rating,
-            'category': self.category
-        } """
 
 
 
@@ -42,6 +39,15 @@ movies = [
         'category' : 'Crimen'
     }
 ]
+
+@app.post('/login', tags=['authentication'])
+def login(user: User):
+    print(user)
+    return user
+
+
+
+
 
 
 
