@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Path, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -69,7 +69,7 @@ def get_movies():
 """ Cuando se esta haciendo la peticion tambien hay que considerar el caso de que no llegue el dato que tipo de dato enviar. """
 
 @app.get('/movies/{id}', tags=['Get Movie'])
-def get_movie(id: int):
+def get_movie(id: int = Path(ge=1, le=100)):
     for item in movies:
         if item["id"] == id:
             return item
@@ -78,7 +78,7 @@ def get_movie(id: int):
 """ Parametro de Query """
 """ A diferencia del caso anterior FastAPI intulle que es una busqueda por query """
 @app.get('/movies/', tags=['Movies'])
-def get_movies_by_category(category: str):
+def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
     return category
 
 
