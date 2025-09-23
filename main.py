@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Body, Path, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -12,11 +12,21 @@ app = FastAPI(
 
 class Movie(BaseModel):
     id : Optional[int] = None
-    title : str = Field(default='Titulo de la pelicula', min_length=5, max_length=15)
-    overview : str =  Field(default='Descripcion de la pelicula', min_length=5, max_length=15)
+    title : str = Field(default='Titulo de la pelicula', min_length=5, max_length=30)
+    overview : str =  Field(default='Descripcion de la pelicula', min_length=5, max_length=50)
     year : int = Field(default=2022)
     rating : float = Field(ge=1, le=10)
     category : str = Field(min_length=3, max_length=15)
+    
+"""     def to_dict(self):
+        return{
+            'id': self.id,
+            'title': self.title,
+            'overview': self.overview,
+            'year': self.year,
+            'rating': self.rating,
+            'category': self.category
+        } """
 
 
 
@@ -65,6 +75,7 @@ def get_movies():
     return movies
 
 
+
 """ Parametos de ruta """
 """ Cuando se esta haciendo la peticion tambien hay que considerar el caso de que no llegue el dato que tipo de dato enviar. """
 
@@ -87,8 +98,7 @@ def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
 @app.post('/movies', tags=['Movies'])
 def create_movies(movie: Movie):
     movies.append(movie)
-    print(movies)
-    return movies
+    return JSONResponse(content={'message': 'Se ha cargado una nueva pelicula', 'movies' : [movie.dict() for m in movies]})
 
 """ Metodo PUT y DELETE """
 
@@ -101,7 +111,7 @@ def update_movie(id : int , movie: Movie ):
             item['year'] = movie.year
             item['rating'] = movie.rating
             item['category'] = movie.category
-            return movies
+            return JSONResponse(content={'message': 'Se ha modificado la pelicula'}, )
     return []
     
 
@@ -110,6 +120,6 @@ def delete_movie(id:int):
     for item in movies:
         if item['id'] == id:
             movies.remove(item)
-            return movies
+            return JSONResponse(content={'message': 'Se ha eliminado la pelicula'} )
     return []
 
