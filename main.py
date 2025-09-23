@@ -1,11 +1,50 @@
-from fastapi import FastAPI, Body
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Body, Path, Query
+from fastapi.responses import HTMLResponse, JSONResponse
+from pydantic import BaseModel, Field
+from typing import Optional
+
 
 app = FastAPI(
     title='Aprendiendo FastApi',
     description='Una api en los primeros pasos',
     version='0.0.1'
 )
+
+class Movie(BaseModel):
+    id : Optional[int] = None
+    title : str = Field(default='Titulo de la pelicula', min_length=5, max_length=30)
+    overview : str =  Field(default='Descripcion de la pelicula', min_length=5, max_length=50)
+    year : int = Field(default=2022)
+    rating : float = Field(ge=1, le=10)
+    category : str = Field(min_length=3, max_length=15)
+    
+"""     def to_dict(self):
+        return{
+            'id': self.id,
+            'title': self.title,
+            'overview': self.overview,
+            'year': self.year,
+            'rating': self.rating,
+            'category': self.category
+        } """
+
+
+
+
+
+movies = [
+    {
+        'id' : 1,
+        'title' : 'El Padrino',
+        'overview' : "El Padrino es una película de 1972 dirigida por Francis For Coppola ...",
+        'year' : '1972',
+        'rating' : 9.2,
+        'category' : 'Crimen'
+    }
+]
+
+
+
 """Documentacion automatica: al agregar dontro de la instancia atributos, como title, description y version se puede modificar la documentacion
 para acceder a la documentacion se ingresar en la  url/docs
 en los verbos HTTP se pueden agregar las etiquetas para personalizar la documentacion con tags 
@@ -24,33 +63,24 @@ METODO GET
 
  """
 
-movies = [
-    {
-        'id' : 1,
-        'title' : 'El Padrino',
-        'overview' : "El Padrino es una película de 1972 dirigida por Francis For Coppola ...",
-        'year' : '1972',
-        'rating' : 9.2,
-        'category' : 'Crimen'
-    }
-]
-@app.get("/", tags=['inicio'])
+@app.get("/", tags=['inicio'], status_code=200)
 def read_root():
     """ No solo se puede responder con un objeto, tambien se pueden responder con etiquetas HTML """
     """ return {"message": "Hello World"} """
     return HTMLResponse('<g2> Hola Mundo! </h2>')
 
 """ Se genera un endpoint para traer todas las peliculas """
-@app.get("/movies", tags=['Get Movies'])
+@app.get("/movies", tags=['Get Movies'], status_code=200)
 def get_movies():
     return movies
+
 
 
 """ Parametos de ruta """
 """ Cuando se esta haciendo la peticion tambien hay que considerar el caso de que no llegue el dato que tipo de dato enviar. """
 
-@app.get('/movies/{id}', tags=['Get Movie'])
-def get_movie(id: int):
+@app.get('/movies/{id}', tags=['Get Movie'], status_code=200)
+def get_movie(id: int = Path(ge=1, le=100)):
     for item in movies:
         if item["id"] == id:
             return item
@@ -59,59 +89,37 @@ def get_movie(id: int):
 """ Parametro de Query """
 """ A diferencia del caso anterior FastAPI intulle que es una busqueda por query """
 @app.get('/movies/', tags=['Movies'])
-def get_movies_by_category(category: str):
+def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
     return category
 
 
 """ Metodo POST """
 
-@app.post('/movies', tags=['Movies'])
-def create_movies(
-    id : int = Body(),
-    title : str = Body(),
-    overview : str = Body(),
-    year : int = Body(),
-    rating : float = Body(),
-    category : str = Body()
-):
-    movies.append({
-  "id": id,
-  "title": title,
-  "overview": overview,
-  "year": year,
-  "rating": rating,
-  "category": category
-})
-    return title
+@app.post('/movies', tags=['Movies'], status_code=201)
+def create_movies(movie: Movie):
+    movies.append(movie)
+    return JSONResponse(content={'message': 'Se ha cargado una nueva pelicula', 'movies' : [movie.dict() for m in movies]})
 
 """ Metodo PUT y DELETE """
 
-@app.put('/movies/{id}', tags=['Movies'])
-def update_movie(
-    id : int,
-    title : str = Body(),
-    overview : str = Body(),
-    year : int = Body(),
-    rating : float = Body(),
-    category : str = Body()
-
- ):
+@app.put('/movies/{id}', tags=['Movies'], status_code=200)
+def update_movie(id : int , movie: Movie ):
     for item in movies:
         if item["id"] == id:
-            item['title'] = title
-            item['overview'] = overview
-            item['year'] = year
-            item['rating'] = rating
-            item['category'] = category
-            return movies
+            item['title'] = movie.title
+            item['overview'] = movie.overview
+            item['year'] = movie.year
+            item['rating'] = movie.rating
+            item['category'] = movie.category
+            return JSONResponse(content={'message': 'Se ha modificado la pelicula'}, )
     return []
     
 
-@app.delete('/movies/{id}', tags=['Movies'])
+@app.delete('/movies/{id}', tags=['Movies'], status_code=200)
 def delete_movie(id:int):
     for item in movies:
         if item['id'] == id:
             movies.remove(item)
-            return movies
+            return JSONResponse(content={'message': 'Se ha eliminado la pelicula'} )
     return []
 
