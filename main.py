@@ -63,14 +63,14 @@ METODO GET
 
  """
 
-@app.get("/", tags=['inicio'])
+@app.get("/", tags=['inicio'], status_code=200)
 def read_root():
     """ No solo se puede responder con un objeto, tambien se pueden responder con etiquetas HTML """
     """ return {"message": "Hello World"} """
     return HTMLResponse('<g2> Hola Mundo! </h2>')
 
 """ Se genera un endpoint para traer todas las peliculas """
-@app.get("/movies", tags=['Get Movies'])
+@app.get("/movies", tags=['Get Movies'], status_code=200)
 def get_movies():
     return movies
 
@@ -79,7 +79,7 @@ def get_movies():
 """ Parametos de ruta """
 """ Cuando se esta haciendo la peticion tambien hay que considerar el caso de que no llegue el dato que tipo de dato enviar. """
 
-@app.get('/movies/{id}', tags=['Get Movie'])
+@app.get('/movies/{id}', tags=['Get Movie'], status_code=200)
 def get_movie(id: int = Path(ge=1, le=100)):
     for item in movies:
         if item["id"] == id:
@@ -95,14 +95,14 @@ def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
 
 """ Metodo POST """
 
-@app.post('/movies', tags=['Movies'])
+@app.post('/movies', tags=['Movies'], status_code=201)
 def create_movies(movie: Movie):
     movies.append(movie)
     return JSONResponse(content={'message': 'Se ha cargado una nueva pelicula', 'movies' : [movie.dict() for m in movies]})
 
 """ Metodo PUT y DELETE """
 
-@app.put('/movies/{id}', tags=['Movies'])
+@app.put('/movies/{id}', tags=['Movies'], status_code=200)
 def update_movie(id : int , movie: Movie ):
     for item in movies:
         if item["id"] == id:
@@ -115,7 +115,7 @@ def update_movie(id : int , movie: Movie ):
     return []
     
 
-@app.delete('/movies/{id}', tags=['Movies'])
+@app.delete('/movies/{id}', tags=['Movies'], status_code=200)
 def delete_movie(id:int):
     for item in movies:
         if item['id'] == id:
