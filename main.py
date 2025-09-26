@@ -6,12 +6,7 @@ from typing import Optional
 from user_jwt import createToken, validateToken
 from fastapi.security import HTTPBearer
 from bd.database import Session, engine, Base
-from models.movie import Movie
-
-
-
-
-
+from models.movie import Movie as MovieModel
 
 
 app = FastAPI(
@@ -67,42 +62,14 @@ def login(user: User):
         return JSONResponse(content={'token': token})
 
 
-"""Documentacion automatica: al agregar dontro de la instancia atributos, como title, description y version se puede modificar la documentacion
-para acceder a la documentacion se ingresar en la  url/docs
-en los verbos HTTP se pueden agregar las etiquetas para personalizar la documentacion con tags 
-En la documentacion puedo ver la informacion de los enpoints la ver Response """
-
-
-""" Metodos HTTP; indica que se quiere hacer con un recurso determinado del servidor
-POST: crear un recurso nuevo
-PUT: modificar un recurso existente
-GET: consultar informacion de un recurso.
-DELETE: eliminar un recurso. """
-
-
-""" 
-METODO GET
-
- """
-
-
 @app.get("/", tags=['inicio'], status_code=200)
 def read_root():
-    """ No solo se puede responder con un objeto, tambien se pueden responder con etiquetas HTML """
-    """ return {"message": "Hello World"} """
     return HTMLResponse('<h2> Hola Mundo! </h2>')
-
-
-""" Se genera un endpoint para traer todas las peliculas """
 
 
 @app.get("/movies", tags=['Get Movies'], dependencies=[Depends(BearerJWT())])
 def get_movies():
     return movies
-
-
-""" Parametos de ruta """
-""" Cuando se esta haciendo la peticion tambien hay que considerar el caso de que no llegue el dato que tipo de dato enviar. """
 
 
 @app.get('/movies/{id}', tags=['Get Movie'], status_code=200)
@@ -113,25 +80,18 @@ def get_movie(id: int = Path(ge=1, le=100)):
     return []
 
 
-""" Parametro de Query """
-""" A diferencia del caso anterior FastAPI intulle que es una busqueda por query """
-
-
 @app.get('/movies/', tags=['Movies'])
 def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
     return category
 
 
-""" Metodo POST """
-
-
 @app.post('/movies', tags=['Movies'], status_code=201)
 def create_movies(movie: Movie):
-    movies.append(movie)
+    db = Session()
+    newMovie = MovieModel(**movie.model_dump())
+    db.add(newMovie)
+    db.commit()
     return JSONResponse(content={'message': 'Se ha cargado una nueva pelicula', 'movies': [movie.model_dump() for m in movies]})
-
-
-""" Metodo PUT y DELETE """
 
 
 @app.put('/movies/{id}', tags=['Movies'], status_code=200)
