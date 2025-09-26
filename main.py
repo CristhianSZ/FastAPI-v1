@@ -5,11 +5,22 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from user_jwt import createToken, validateToken
 from fastapi.security import HTTPBearer
+from bd.database import Session, engine, Base
+from models.movie import Movie
+
+
+
+
+
+
+
 app = FastAPI(
     title='Aprendiendo FastApi',
     description='Una api en los primeros pasos',
     version='0.0.1'
 )
+
+Base.metadata.create_all(bind=engine)
 
 
 class BearerJWT(HTTPBearer):
