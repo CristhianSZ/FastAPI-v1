@@ -7,6 +7,7 @@ from user_jwt import createToken, validateToken
 from fastapi.security import HTTPBearer
 from bd.database import Session, engine, Base
 from models.movie import Movie as MovieModel
+from fastapi.encoders import jsonable_encoder
 
 
 app = FastAPI(
@@ -69,15 +70,19 @@ def read_root():
 
 @app.get("/movies", tags=['Get Movies'], dependencies=[Depends(BearerJWT())])
 def get_movies():
-    return movies
+    db = Session()
+    data = db.query(MovieModel).all()
+    return JSONResponse(content=jsonable_encoder(data), status_code=200)
 
 
 @app.get('/movies/{id}', tags=['Get Movie'], status_code=200)
 def get_movie(id: int = Path(ge=1, le=100)):
-    for item in movies:
-        if item["id"] == id:
-            return item
-    return []
+    db = Session()
+    data = db.query(MovieModel).filter(MovieModel.id == id).first()
+    if not data:
+        return JSONResponse(status_code=404, content={
+            'message': 'Recurso no encontrado'})
+    return JSONResponse(status_code=200, content=jsonable_encoder(data))
 
 
 @app.get('/movies/', tags=['Movies'])
