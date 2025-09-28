@@ -6,7 +6,7 @@ from typing import Optional
 from user_jwt import createToken, validateToken
 from fastapi.security import HTTPBearer
 from bd.database import Session, engine, Base
-from models.movie import Movie as MovieModel
+from models.movie import Movie as ModelMovie
 from fastapi.encoders import jsonable_encoder
 
 
@@ -71,14 +71,14 @@ def read_root():
 @app.get("/movies", tags=['Get Movies'], dependencies=[Depends(BearerJWT())])
 def get_movies():
     db = Session()
-    data = db.query(MovieModel).all()
+    data = db.query(ModelMovie).all()
     return JSONResponse(content=jsonable_encoder(data), status_code=200)
 
 
 @app.get('/movies/{id}', tags=['Get Movie'], status_code=200)
 def get_movie(id: int = Path(ge=1, le=100)):
     db = Session()
-    data = db.query(MovieModel).filter(MovieModel.id == id).first()
+    data = db.query(ModelMovie).filter(ModelMovie.id == id).first()
     if not data:
         return JSONResponse(status_code=404, content={
             'message': 'Recurso no encontrado'})
@@ -93,7 +93,7 @@ def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
 @app.post('/movies', tags=['Movies'], status_code=201)
 def create_movies(movie: Movie):
     db = Session()
-    newMovie = MovieModel(**movie.model_dump())
+    newMovie = ModelMovie(**movie.model_dump())
     db.add(newMovie)
     db.commit()
     return JSONResponse(content={'message': 'Se ha cargado una nueva pelicula', 'movies': [movie.model_dump() for m in movies]})
@@ -101,15 +101,18 @@ def create_movies(movie: Movie):
 
 @app.put('/movies/{id}', tags=['Movies'], status_code=200)
 def update_movie(id: int, movie: Movie):
-    for item in movies:
-        if item["id"] == id:
-            item['title'] = movie.title
-            item['overview'] = movie.overview
-            item['year'] = movie.year
-            item['rating'] = movie.rating
-            item['category'] = movie.category
-            return JSONResponse(content={'message': 'Se ha modificado la pelicula'})
-    return []
+    db = Session()
+    data = db.query(ModelMovie).filter(ModelMovie.id == id).first()
+    if not data:
+        return JSONResponse(status_code=404, content={
+            'message': 'Recurso no encontrado'})
+    data.title = movie.title
+    data.overview = movie.overview
+    data.year = movie.year
+    data.rating = movie.rating
+    data.category = movie.category
+    db.commit()
+    return JSONResponse(content={'message': 'Se ha modificado la pelicula'})
 
 
 @app.delete('/movies/{id}', tags=['Movies'], status_code=200)
