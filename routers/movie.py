@@ -57,10 +57,10 @@ def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
 @routerMovie.post('/movies',  tags=['Movies'], status_code=201)
 def create_movie( movie: Movie):
     db = Session()
-    newMovie = ModelMovie(**movie.dict())
+    newMovie = ModelMovie(**movie.model_dump())
     db.add(newMovie)
     db.commit()
-    return  JSONResponse(status_code=201 , content={'message': 'Se ha cargado una nueva pelicula', 'movie': [movie.dict() for m in movies]})
+    return  JSONResponse(status_code=201 , content={'message': 'Se ha cargado una nueva pelicula', 'movie': [movie.model_dump() for m in movies]})
 
 @routerMovie.put('/movies/{id}',  tags=['Movies'], status_code=200)
 def update_movie(id: int, movie:Movie):

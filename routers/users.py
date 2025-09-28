@@ -13,6 +13,6 @@ class User(BaseModel):
 @login_user.post('/login', tags=['authentication'])
 def login(user: User):
     if user.email == 'admin@gmail.com' and user.password == '123':
-        token: str = createToken(user.dict())
+        token: str = createToken(user.model_dump())
         print(token)
         return JSONResponse(content=token)
