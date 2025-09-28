@@ -117,8 +117,11 @@ def update_movie(id: int, movie: Movie):
 
 @app.delete('/movies/{id}', tags=['Movies'], status_code=200)
 def delete_movie(id: int):
-    for item in movies:
-        if item['id'] == id:
-            movies.remove(item)
-            return JSONResponse(content={'message': 'Se ha eliminado la pelicula'})
-    return []
+    db = Session()
+    data = db.query(ModelMovie).filter(ModelMovie.id == id).first()
+    if not data:
+        return JSONResponse(status_code=404, content={
+            'message': 'Recurso no encontrado'})
+    db.delete(data)
+    db.commit()
+    return JSONResponse(content={'message': 'Se ha eliminado la pelicula', 'data': jsonable_encoder(data)})
