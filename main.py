@@ -87,7 +87,12 @@ def get_movie(id: int = Path(ge=1, le=100)):
 
 @app.get('/movies/', tags=['Movies'])
 def get_movies_by_category(category: str = Query(min_length=3, max_length=15)):
-    return category
+    db = Session()
+    data = db.query(ModelMovie).filter(ModelMovie.category == category).all()
+    if not data:
+        return JSONResponse(status_code=404, content={
+            'message': 'Recurso no encontrado'})
+    return JSONResponse(content=jsonable_encoder(data), status_code=200)
 
 
 @app.post('/movies', tags=['Movies'], status_code=201)
